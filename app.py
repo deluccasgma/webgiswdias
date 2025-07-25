@@ -12,7 +12,8 @@ usuarios = {
     "admin": "senhaadm",
     "usuario1": "senha1",
     "usuario2": "senha2",
-    "deluccasgma@gmail.com": "Lg1401@@"
+    "deluccasgma@gmail.com": "Lg1401@@",
+    "gilmar@wdias.eng.br": "123456"
 }
 
 # Lista de administradores
