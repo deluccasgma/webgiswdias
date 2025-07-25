@@ -1,22 +1,11 @@
 import streamlit as st
-import geopandas as gpd
 from streamlit_folium import st_folium
 import folium
+import json
 import os
 
-# Caminho do shapefile
-shapefile_path = os.path.join("Shapefile", "ÁREA_DO_IMOVEL.shp")
-
-# Carregar o shapefile
-try:
-    gdf = gpd.read_file(shapefile_path)
-except Exception as e:
-    st.error(f"Erro ao carregar o shapefile: {e}")
-    st.stop()
-
-# Calcular o centro e a extensão para o zoom inicial
-total_bounds = gdf.total_bounds  # [minx, miny, maxx, maxy]
-center = [(total_bounds[1] + total_bounds[3]) / 2, (total_bounds[0] + total_bounds[2]) / 2]
+# Caminho do GeoJSON
+geojson_path = os.path.join("Shapefile", "area_do_imovel.geojson")
 
 # Lista de usuários e senhas
 usuarios = {
@@ -74,13 +63,33 @@ if not st.session_state.autenticado:
 if st.session_state.get("usuario") in admins:
     st.sidebar.info("Você está logado como ADMINISTRADOR.")
 
-# Título
-st.title("WebGIS - Visualização de Shapefile")
 st.set_page_config(layout="wide")
 
 # Sidebar para exibir/ocultar o shapefile
 st.sidebar.title("Opções do Mapa")
 show_shapefile = st.sidebar.checkbox("Exibir Shapefile", value=True)
+
+# Carregar o GeoJSON
+try:
+    with open(geojson_path, "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+except Exception as e:
+    st.error(f"Erro ao carregar o arquivo GeoJSON: {e}")
+    st.stop()
+
+# Calcular centro aproximado
+if geojson_data["features"]:
+    coords = geojson_data["features"][0]["geometry"]["coordinates"]
+    # Suporta apenas Polygon ou MultiPolygon
+    if geojson_data["features"][0]["geometry"]["type"] == "Polygon":
+        lon, lat = coords[0][0]
+    elif geojson_data["features"][0]["geometry"]["type"] == "MultiPolygon":
+        lon, lat = coords[0][0][0]
+    else:
+        lon, lat = 0, 0
+    center = [lat, lon]
+else:
+    center = [0, 0]
 
 # Criar o mapa folium
 m = folium.Map(location=center, zoom_start=16, control_scale=True)
@@ -103,18 +112,12 @@ folium.TileLayer(
     attr="Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
 ).add_to(m)
 
-# Adicionar shapefile como camada
+# Adicionar GeoJSON como camada
 if show_shapefile:
     folium.GeoJson(
-        gdf,
+        geojson_data,
         name="Shapefile",
-        style_function=lambda x: {
-            'fillColor': 'orange',
-            'color': 'red',
-            'weight': 2,
-            'fillOpacity': 0.3
-        },
-        popup=folium.GeoJsonPopup(fields=[col for col in gdf.columns if col != "geometry"])
+        popup=folium.GeoJsonPopup(fields=list(geojson_data["features"][0]["properties"].keys()))
     ).add_to(m)
 
 # Adicionar controle de camadas
