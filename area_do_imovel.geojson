@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "recibo": "12345",
+        "modfiscais": "A",
+        "tema": "Teste",
+        "area": 100.5,
+        "municipio": "Cidade Exemplo",
+        "estado": "UF"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-47.9292, -15.7801],
+            [-47.9292, -15.7811],
+            [-47.9282, -15.7811],
+            [-47.9282, -15.7801],
+            [-47.9292, -15.7801]
+          ]
+        ]
+      }
+    }
+  ]
+} 
